@@ -23,7 +23,7 @@ type playerDiedEvent struct {
 	Message              string
 }
 
-const maxInputLength = 30
+const maxInputLength = 45
 
 var (
 	abilities = map[string]string{
