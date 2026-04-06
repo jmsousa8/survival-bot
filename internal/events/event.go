@@ -18,6 +18,7 @@ type Event interface {
 	SetMessage(message string)
 	Prompt() string
 	ToDiscordEmbed() *discordgo.MessageEmbed
+	HasDebug() string
 }
 
 type DeathEvent interface {

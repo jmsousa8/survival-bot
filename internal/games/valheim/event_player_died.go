@@ -76,6 +76,10 @@ Requirements:
 Just output the message, nothing else.`, e.PlayerName)
 }
 
+func (e *playerDiedEvent) HasDebug() string {
+	return ""
+}
+
 func generateMessage(playerName string) string {
 	var deathMessages = []string{
 		fmt.Sprintf("⚔ **{%s}** has fallen in battle!", playerName),

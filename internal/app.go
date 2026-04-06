@@ -182,6 +182,10 @@ func (a *App) saveServerEvent(event events.Event) error {
 		return fmt.Errorf("failed to insert server event: %w", err)
 	}
 
+	if d := event.HasDebug(); d != "" {
+		a.discordBot.AddDebug(d)
+	}
+
 	if deathEvent, ok := event.(events.DeathEvent); ok {
 		death := &db.Death{
 			ServerEventID: serverEvent.ID,

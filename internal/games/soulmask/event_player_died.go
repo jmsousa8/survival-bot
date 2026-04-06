@@ -133,6 +133,21 @@ Requirements:
 Just output the message, nothing else.`, e.deathSummary())
 }
 
+func (e *playerDiedEvent) HasDebug() string {
+	debug := ""
+	if e.DeathCausedByEffect != "" {
+		if _, ok := effects[e.DeathCausedByEffect]; !ok {
+			debug += fmt.Sprintf("unknown GE '%s'\n", e.DeathCausedByEffect)
+		}
+	}
+	if e.DeathCausedByAbility != "" {
+		if _, ok := abilities[e.DeathCausedByAbility]; !ok {
+			debug += fmt.Sprintf("unknown GA '%s'", e.DeathCausedByAbility)
+		}
+	}
+	return debug
+}
+
 func generateMessage(playerName, killerName, killerPlayerName string) string {
 	var deathMessages = []string{
 		"⚔ **{player}** was slain by {killer}",
