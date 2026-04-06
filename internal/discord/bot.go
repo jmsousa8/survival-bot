@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strings"
 	"sync"
 	"time"
 
@@ -16,6 +15,14 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+type IDiscord interface {
+	SendMessage(event events.Event) error
+	SendDailyRecap(ctx context.Context) error
+	Close() error
+	Game() string
+	AddDebug(msg string)
+}
+
 type Bot struct {
 	session       *discordgo.Session
 	cfg           *config.Config
@@ -26,7 +33,6 @@ type Bot struct {
 	mu            sync.Mutex
 }
 
-type CommandHandler func(s *discordgo.Session, i *discordgo.InteractionCreate)
 type CommandHandlerWithResp func(s *discordgo.Session, i *discordgo.InteractionCreate) *discordgo.InteractionResponse
 
 func NewBot(cfg *config.Config, database db.IDatabase, llm ai.Llm) (*Bot, error) {
@@ -167,80 +173,9 @@ func (b *Bot) Game() string {
 	return b.cfg.Game
 }
 
-func (b *Bot) handleDM(s *discordgo.Session, m *discordgo.MessageCreate) {
-	if m.GuildID != "" {
-		return
-	}
-
-	if b.cfg.OwnerID == "" {
-		return
-	}
-
-	if m.Author.ID != b.cfg.OwnerID {
-		return
-	}
-
-	content := strings.TrimSpace(m.Content)
-
-	if strings.HasPrefix(content, "link ") {
-		b.handleLinkCommand(s, m.ChannelID, content[5:])
-		return
-	}
-
-	messages := b.GetAndClearDebug()
-	if len(messages) == 0 {
-		_, _ = s.ChannelMessageSend(m.ChannelID, "No debug messages.")
-		return
-	}
-
-	response := "📋 Debug Messages:\n" + strings.Join(messages, "\n")
-	_, _ = s.ChannelMessageSend(m.ChannelID, response)
-}
-
-func (b *Bot) handleLinkCommand(s *discordgo.Session, channelID, args string) {
-	parts := strings.SplitN(args, " ", 2)
-	if len(parts) != 2 {
-		_, _ = s.ChannelMessageSend(channelID, "Usage: link <player_name> <discord_id>")
-		return
-	}
-
-	playerName := parts[0]
-	discordInput := parts[1]
-
-	link := &db.PlayerLink{
-		Game:          b.cfg.Game,
-		PlayerName:    playerName,
-		DiscordUserID: discordInput,
-	}
-
-	if err := b.db.InsertPlayerLink(link); err != nil {
-		_, _ = s.ChannelMessageSend(channelID, fmt.Sprintf("Error: %v", err))
-		return
-	}
-
-	_, _ = s.ChannelMessageSend(channelID, fmt.Sprintf("✅ Linked **%s** to <@%s>", playerName, discordInput))
-}
-
 func (b *Bot) AddDebug(msg string) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 	timestamp := time.Now().Format("2006-01-02 15:04:05")
 	b.debugMessages = append(b.debugMessages, fmt.Sprintf("[%s] %s", timestamp, msg))
-}
-
-func (b *Bot) GetAndClearDebug() []string {
-	b.mu.Lock()
-	defer b.mu.Unlock()
-	messages := make([]string, len(b.debugMessages))
-	copy(messages, b.debugMessages)
-	b.debugMessages = nil
-	return messages
-}
-
-type IDiscord interface {
-	SendMessage(event events.Event) error
-	SendDailyRecap(ctx context.Context) error
-	Close() error
-	Game() string
-	AddDebug(msg string)
 }
