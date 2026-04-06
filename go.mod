@@ -1,13 +1,13 @@
 module survival-bot
 
-go 1.25
+go 1.26
 
 require (
 	github.com/bwmarrin/discordgo v0.29.0
 	github.com/joho/godotenv v1.5.1
-	github.com/mattn/go-sqlite3 v1.14.37
+	github.com/mattn/go-sqlite3 v1.14.41
 	github.com/stretchr/testify v1.11.1
-	google.golang.org/genai v1.50.0
+	google.golang.org/genai v1.52.1
 )
 
 require (
