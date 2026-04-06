@@ -434,3 +434,29 @@ func (d *database) GetLastDeath(game, playerName string) (*db.Death, error) {
 
 	return &death, nil
 }
+
+func (d *database) GetLastDeaths(game, playerName string, limit int64) ([]db.Death, error) {
+	query := `SELECT id, server_event_id, game, player_name, killer_name, death_cause, is_suicide, timestamp
+		FROM deaths 
+		WHERE game = ? AND player_name = ? 
+		ORDER BY timestamp DESC
+		LIMIT ?`
+
+	rows, err := d.db.Query(query, game, playerName, limit)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query last deaths: %w", err)
+	}
+	defer rows.Close()
+
+	var deaths []db.Death
+	for rows.Next() {
+		var death db.Death
+		err = rows.Scan(&death.ID, &death.ServerEventID, &death.Game, &death.PlayerName, &death.KillerName, &death.DeathCause, &death.IsSuicide, &death.Timestamp)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan death: %w", err)
+		}
+		deaths = append(deaths, death)
+	}
+
+	return deaths, nil
+}

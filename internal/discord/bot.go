@@ -100,6 +100,24 @@ func (b *Bot) SetupCommands() error {
 				},
 			},
 		},
+		{
+			Name:        "deaths",
+			Description: "Show player last deaths",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Name:        "player",
+					Description: "Discord user",
+					Type:        discordgo.ApplicationCommandOptionUser,
+					Required:    true,
+				},
+				{
+					Name:        "count",
+					Description: "How many deaths to list. Defaults to 10",
+					Type:        discordgo.ApplicationCommandOptionInteger,
+					Required:    false,
+				},
+			},
+		},
 	}
 
 	for _, cmd := range commands {

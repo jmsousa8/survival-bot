@@ -272,3 +272,39 @@ func TestGetMostCommonKiller_NoSuicides(t *testing.T) {
 	require.Error(t, err)
 	assert.Nil(t, stats)
 }
+
+func TestGetLastDeaths_LimitAbove(t *testing.T) {
+	d := setupTestDB(t)
+	defer d.Close()
+
+	err := d.InsertDeath(&db.Death{Game: "testgame", PlayerName: "Player1", KillerName: "Enemy1", DeathCause: "fall damage", IsSuicide: false})
+	require.NoError(t, err)
+	err = d.InsertDeath(&db.Death{Game: "testgame", PlayerName: "Player1", KillerName: "Enemy2", DeathCause: "melee", IsSuicide: false})
+	require.NoError(t, err)
+	err = d.InsertDeath(&db.Death{Game: "testgame", PlayerName: "Player2", KillerName: "Player2", IsSuicide: true})
+	require.NoError(t, err)
+	err = d.InsertDeath(&db.Death{Game: "othergame", PlayerName: "Player3", KillerName: "Enemy1"})
+	require.NoError(t, err)
+
+	deaths, err := d.GetLastDeaths("testgame", "Player1", 5)
+	require.NoError(t, err)
+	assert.Len(t, deaths, 2)
+}
+
+func TestGetLastDeaths_LimitBelow(t *testing.T) {
+	d := setupTestDB(t)
+	defer d.Close()
+
+	err := d.InsertDeath(&db.Death{Game: "testgame", PlayerName: "Player1", KillerName: "Enemy1", DeathCause: "fall damage", IsSuicide: false})
+	require.NoError(t, err)
+	err = d.InsertDeath(&db.Death{Game: "testgame", PlayerName: "Player1", KillerName: "Enemy2", DeathCause: "melee", IsSuicide: false})
+	require.NoError(t, err)
+	err = d.InsertDeath(&db.Death{Game: "testgame", PlayerName: "Player2", KillerName: "Player2", IsSuicide: true})
+	require.NoError(t, err)
+	err = d.InsertDeath(&db.Death{Game: "othergame", PlayerName: "Player3", KillerName: "Enemy1"})
+	require.NoError(t, err)
+
+	deaths, err := d.GetLastDeaths("testgame", "Player1", 1)
+	require.NoError(t, err)
+	assert.Len(t, deaths, 1)
+}

@@ -61,6 +61,7 @@ func NewApp(ctx context.Context, cfg *config.Config) (*App, error) {
 	discordBot.RegisterCommand("stats", discordBot.HandleStats)
 	discordBot.RegisterCommand("leaderboard", discordBot.HandleLeaderboard)
 	discordBot.RegisterCommand("roast", discordBot.HandleRoast)
+	discordBot.RegisterCommand("deaths", discordBot.HandleDeaths)
 
 	if err = discordBot.Open(); err != nil {
 		return nil, fmt.Errorf("failed to open discord connection: %w", err)

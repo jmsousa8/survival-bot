@@ -29,6 +29,7 @@ type IDatabase interface {
 	InsertDeath(death *Death) error
 	GetDeaths(game string, today bool) ([]Death, error)
 	GetLastDeath(game, playerName string) (*Death, error)
+	GetLastDeaths(game, playerName string, limit int64) ([]Death, error)
 
 	CountDeathsByFallDamage(game string, today bool) (*CauseOfDeathStats, error)
 	CountDeathsBySuicide(game string, today bool) (*CauseOfDeathStats, error)

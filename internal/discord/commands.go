@@ -375,3 +375,86 @@ func (b *Bot) HandleStats(s *discordgo.Session, i *discordgo.InteractionCreate) 
 		},
 	}
 }
+
+func (b *Bot) HandleDeaths(s *discordgo.Session, i *discordgo.InteractionCreate) *discordgo.InteractionResponse {
+	user := i.ApplicationCommandData().Options[0].UserValue(s)
+
+	link, err := b.db.GetPlayerLinkByDiscord(user.ID, b.cfg.Game)
+	if err != nil {
+		b.AddDebug(fmt.Sprintf("stats GetPlayerLinkByDiscord: %v", err))
+		return &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: "Something went wrong!",
+				Flags:   discordgo.MessageFlagsEphemeral,
+			},
+		}
+	}
+
+	if link == nil {
+		b.AddDebug(fmt.Sprintf("unknown discord user: %s, %s", user.GlobalName, user.ID))
+		return &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: "Player not yet registered",
+				Flags:   discordgo.MessageFlagsEphemeral,
+			},
+		}
+	}
+
+	n := int64(10)
+	if len(i.ApplicationCommandData().Options) == 2 {
+		n = i.ApplicationCommandData().Options[1].IntValue()
+		if n < 1 {
+			n = 1
+		}
+	}
+
+	deaths, err := b.db.GetLastDeaths(b.cfg.Game, link.PlayerName, n)
+	if err != nil {
+		b.AddDebug(fmt.Sprintf("stats GetLastDeaths: %v", err))
+		return &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: "Something went wrong!",
+				Flags:   discordgo.MessageFlagsEphemeral,
+			},
+		}
+	}
+
+	count := len(deaths)
+	if count == 0 {
+		return &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Embeds: []*discordgo.MessageEmbed{
+					{
+						Title:       fmt.Sprintf("💀 Last deaths of **%s**", link.PlayerName),
+						Description: "Player has no record of deaths",
+						Color:       0x00FF00,
+					},
+				},
+				Flags: discordgo.MessageFlagsEphemeral,
+			},
+		}
+	}
+
+	var description string
+	for _, death := range deaths {
+		description += fmt.Sprintf("%s: %s\n", death.Timestamp.Format("2006-01-02 15:04"), death.String())
+	}
+
+	return &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Embeds: []*discordgo.MessageEmbed{
+				{
+					Title:       fmt.Sprintf("💀 Last %d deaths of **%s**", count, link.PlayerName),
+					Description: description,
+					Color:       0x00FF00,
+				},
+			},
+			Flags: discordgo.MessageFlagsEphemeral,
+		},
+	}
+}
