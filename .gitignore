@@ -1,0 +1,7 @@
+.env
+.idea/
+bin/
+!bin/.gitkeep
+internal/games/soulmask/WS.log.example
+mocks/
+/bot.db

@@ -1,0 +1,25 @@
+all: false
+dir: "./mocks"
+pkgname: "mocks"
+template: testify
+packages:
+  survival-bot/internal/ai:
+    config:
+      filename: "ai_mock.go"
+      all: true
+  survival-bot/internal/db:
+    config:
+      filename: "db_mock.go"
+      all: true
+  survival-bot/internal/discord:
+    config:
+      filename: "discord_mock.go"
+      all: true
+  survival-bot/internal/logwatcher:
+    config:
+      filename: "logwatcher_mock.go"
+      all: true
+  survival-bot/internal/games:
+    config:
+      filename: "games_mock.go"
+      all: true
